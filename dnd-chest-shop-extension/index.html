@@ -17,7 +17,6 @@
                     if (!context.items || context.items.length === 0) return;
                     OBR.popover.open({
                         id: "com.yourparty.chest/popover",
-                        // บังคับรีเฟรช 100% ทุกครั้งที่เปิด ป้องกันบัคเข้าไม่ได้
                         url: `ui.html?tokenId=${context.items[0].id}&t=${Date.now()}`,
                         height: 600, width: 450
                     });
