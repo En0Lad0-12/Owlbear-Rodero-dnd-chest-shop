@@ -1,0 +1,14 @@
+{
+  "name": "Chest & Shop",
+  "version": "1.0.0",
+  "manifest_version": 1,
+  "description": "ระบบจัดการหีบสมบัติและร้านค้าสำหรับปาร์ตี้",
+  "action": {
+    "title": "Open Chest / Shop",
+    "icon": "/icon.svg",
+    "popover": "/ui.html",
+    "height": 600,
+    "width": 450
+  },
+  "background_url": "/index.html"
+}

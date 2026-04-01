@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chest & Shop UI</title>
+    <style>
+        :root { --bg: #242424; --panel: #333; --item: #444; --primary: #4CAF50; --danger: #e74c3c; --text: #e0e0e0; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; padding: 15px; background: var(--bg); color: var(--text); margin: 0; }
+        h3 { color: #f39c12; margin: 0 0 10px 0; border-bottom: 1px solid #444; padding-bottom: 5px; font-size: 18px; }
+        .box { background: var(--panel); padding: 12px; border-radius: 5px; margin-bottom: 12px; }
+        
+        input, select, textarea { width: 100%; padding: 8px; margin: 4px 0; background: #555; border: 1px solid #666; color: white; border-radius: 4px; box-sizing: border-box;}
+        button { cursor: pointer; border: none; border-radius: 4px; font-weight: bold; color: white; padding: 8px; transition: 0.1s; }
+        button:active { transform: scale(0.98); }
+        button:disabled { cursor: not-allowed; opacity: 0.7; }
+        
+        .btn-green { background: var(--primary); width: 100%; padding: 10px; font-size: 15px; margin-top: 5px;}
+        .btn-blue { background: #2196F3; width: 100%; margin-bottom: 10px;}
+        .btn-red { background: var(--danger); width: 100%; padding: 10px; margin-top: 10px;}
+        
+        .flex-row { display: flex; gap: 8px; align-items: center; }
+        .flex-1 { flex: 1; }
+        
+        .money-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; text-align: center; margin-bottom: 5px; }
+        .money-grid input { text-align: center; margin: 0; padding: 5px; font-size: 14px; }
+        .c-pp { color: #e5e4e2; font-weight: bold; } .c-gp { color: #ffd700; font-weight: bold; } 
+        .c-ep { color: #b8b799; font-weight: bold; } .c-sp { color: #c0c0c0; font-weight: bold; } .c-cp { color: #b87333; font-weight: bold; } 
+
+        .item-list { max-height: 280px; overflow-y: auto; padding-right: 5px; }
+        .item-row { background: var(--item); padding: 10px; margin-bottom: 8px; border-radius: 4px; border-left: 5px solid white; position: relative;}
+        
+        .log-entry { font-size: 13px; padding: 8px; border-bottom: 1px solid #444; color: #ccc; }
+        .log-entry span.time { color: #f39c12; font-size: 11px; }
+        .badge { background: #555; padding: 2px 6px; border-radius: 10px; font-size: 11px; margin-left: 5px; }
+
+        .tab-btn { flex: 1; padding: 10px; font-size: 14px; border-radius: 4px; border: none; font-weight: bold; cursor: pointer; color: white;}
+    </style>
+</head>
+<body>
+
+    <div id="view-action" style="display: none;">
+        
+        <div id="action-tabs" style="display: flex; gap: 5px; margin-bottom: 10px; display: none;">
+            <button id="tab-log" class="tab-btn" style="background: #f39c12;" onclick="App.switchActionTab('log')">📜 Activity Log</button>
+            <button id="tab-tracker" class="tab-btn" style="background: #555;" onclick="App.switchActionTab('tracker')">🔍 Token Tracker</button>
+        </div>
+
+        <div id="action-log-content">
+            <h3 id="log-header">📜 Party Activity Log</h3>
+            <div class="box item-list" id="log-container" style="max-height: 400px;">
+                <p style="text-align:center; color:#888;">No recent activities...</p>
+            </div>
+        </div>
+
+        <div id="action-tracker-content" style="display: none;">
+            <h3>🔍 Chest & Shop Locations</h3>
+            <div class="box item-list" id="tracker-container" style="max-height: 400px; padding:5px;">
+                </div>
+            <p style="font-size: 12px; color: #aaa; text-align: center; margin-top:5px;">* Double-click a row to focus camera on token.</p>
+        </div>
+
+        <button class="btn-red" onclick="App.close()">Close</button>
+    </div>
+
+    <div id="view-chest" style="display: none;">
+        <h3 id="header-title">📦 Loading...</h3>
+        <div id="lock-warning" style="display:none; color:var(--danger); text-align:center; padding: 20px; font-size: 18px; font-weight:bold;">🔒 This is locked by DM</div>
+        
+        <div id="main-content" style="display:none;">
+            <div id="dm-controls" style="display:none; margin-bottom: 10px;">
+                
+                <div class="flex-row" style="margin-bottom: 10px;">
+                    <button class="flex-1" style="background: #8e44ad;" onclick="App.exportPreset()">💾 Export Preset</button>
+                    <label class="flex-1" style="background: #2c3e50; text-align: center; cursor: pointer; padding: 8px; border-radius: 4px; font-weight: bold; color: white;">
+                        📂 Import <input type="file" accept=".json" style="display: none;" onchange="App.importPreset(event)">
+                    </label>
+                </div>
+
+                <div class="flex-row" style="margin-bottom: 5px;">
+                    <button id="btn-lock" class="flex-1" onclick="App.toggleLock()" style="background: #e74c3c;">🔓 Unlocked</button>
+                    <button id="btn-kick" class="flex-1" onclick="App.forceUnlock()" style="background: #34495e;">🥾 Kick Viewer</button>
+                </div>
+                <div class="flex-row" style="margin-bottom: 10px;">
+                    <select id="type-select" class="flex-1" style="margin:0;" onchange="App.toggleType()">
+                        <option value="chest">📦 Chest</option>
+                        <option value="shop">⚖️ Shop</option>
+                    </select>
+                </div>
+                <div id="view-status" style="font-size: 12px; color: #aaa; text-align: center; margin-bottom: 10px;"></div>
+                
+                <div class="box">
+                    <div style="font-size: 13px; margin-bottom: 5px;">🗡️ <strong>Item Manager</strong></div>
+                    <div class="flex-row">
+                        <input type="text" id="i-name" placeholder="Item Name" style="flex: 3;">
+                        <input type="number" id="i-qty" placeholder="Qty" value="1" min="1" style="flex: 1;" title="Quantity">
+                    </div>
+                    <div class="flex-row">
+                        <select id="i-rarity" class="flex-1">
+                            <option value="White">Common</option><option value="#4CAF50" style="color:#4CAF50;">Uncommon</option>
+                            <option value="#2196F3" style="color:#2196F3;">Rare</option><option value="#9C27B0" style="color:#9C27B0;">Very Rare</option>
+                            <option value="#FF9800" style="color:#FF9800;">Legendary</option>
+                        </select>
+                        <div id="shop-price-inputs" class="flex-1 flex-row" style="display:none;">
+                            <input type="number" id="i-pval" placeholder="Price" min="0" style="flex:2;">
+                            <select id="i-pcoin" style="flex:1;"><option>GP</option><option>SP</option><option>CP</option><option>PP</option></select>
+                        </div>
+                    </div>
+                    <textarea id="i-desc" placeholder="Description (Optional)" rows="1"></textarea>
+                    <button id="btn-add-item" class="btn-blue" onclick="App.saveItem()">+ Add Item</button>
+                </div>
+            </div>
+
+            <div class="box" id="money-section">
+                <div style="font-size: 14px; margin-bottom: 5px; text-align:center;">💰 <strong>Money</strong></div>
+                <div class="money-grid" id="dm-money-inputs" style="display:none;">
+                    <div><span class="c-pp">PP</span><input type="number" id="m-pp" min="0" value="0"></div>
+                    <div><span class="c-gp">GP</span><input type="number" id="m-gp" min="0" value="0"></div>
+                    <div><span class="c-ep">EP</span><input type="number" id="m-ep" min="0" value="0"></div>
+                    <div><span class="c-sp">SP</span><input type="number" id="m-sp" min="0" value="0"></div>
+                    <div><span class="c-cp">CP</span><input type="number" id="m-cp" min="0" value="0"></div>
+                </div>
+                <div id="player-money-display" style="text-align:center; display:none; margin-bottom: 10px;">
+                    <span id="d-pp" class="c-pp"></span> <span id="d-gp" class="c-gp"></span> <span id="d-ep" class="c-ep"></span> <span id="d-sp" class="c-sp"></span> <span id="d-cp" class="c-cp"></span>
+                </div>
+                <button id="btn-take-money" class="btn-green" style="display:none;" onclick="App.takeMoney()">Take All Money</button>
+            </div>
+
+            <button id="btn-take-all" class="btn-green" style="display:none; margin-bottom: 10px; background: #8e44ad;" onclick="App.takeAll()">🎁 Take All Items & Money</button>
+
+            <div id="item-list" class="item-list"></div>
+            
+            <button id="btn-save-dm" class="btn-green" style="display:none;" onclick="App.saveToToken()">💾 Save Changes to Token</button>
+            <p id="save-status" style="color: #4CAF50; display: none; text-align: center; margin-top: 5px;">Saved successfully!</p>
+        </div>
+        <button class="btn-red" onclick="App.close()">Close Window</button>
+    </div>
+
+    <script type="module">
+        import OBR from "https://esm.sh/@owlbear-rodeo/sdk@latest";
+
+        const App = {
+            state: { role: "PLAYER", myName: "", myId: "", tokenId: null, data: null, editId: null },
+            
+            async init() {
+                const urlParams = new URLSearchParams(window.location.search);
+                this.state.tokenId = urlParams.get('tokenId');
+                this.state.role = await OBR.player.getRole();
+                this.state.myName = await OBR.player.getName();
+                this.state.myId = await OBR.player.getId();
+
+                if (!this.state.tokenId) {
+                    document.getElementById('view-action').style.display = 'block';
+                    if (this.state.role === "GM") {
+                        document.getElementById('action-tabs').style.display = 'flex';
+                        document.getElementById('log-header').style.display = 'none'; // ซ่อนหัวข้อถ้ามี Tab แล้ว
+                        this.loadTracker();
+                    }
+                    this.bindLogSync();
+                } else {
+                    document.getElementById('view-chest').style.display = 'block';
+                    await this.loadTokenData();
+
+                    if (this.state.role !== "GM") {
+                        if (!this.state.data.inUseBy || this.state.data.inUseBy === this.state.myId) {
+                            this.state.data.inUseBy = this.state.myId;
+                            this.state.data.inUseByName = this.state.myName;
+                            await this.saveToToken(true); 
+                        }
+                    }
+                    this.bindTokenSync();
+                }
+
+                window.addEventListener('beforeunload', async () => {
+                    if (this.state.tokenId && this.state.role !== "GM" && this.state.data && this.state.data.inUseBy === this.state.myId) {
+                        this.state.data.inUseBy = "";
+                        this.state.data.inUseByName = "";
+                        await this.saveToToken(true);
+                    }
+                });
+            },
+
+            // --- ระบบ Tracker ของ DM ---
+            switchActionTab(tab) {
+                if(tab === 'log') {
+                    document.getElementById('tab-log').style.background = '#f39c12';
+                    document.getElementById('tab-tracker').style.background = '#555';
+                    document.getElementById('action-log-content').style.display = 'block';
+                    document.getElementById('action-tracker-content').style.display = 'none';
+                } else {
+                    document.getElementById('tab-log').style.background = '#555';
+                    document.getElementById('tab-tracker').style.background = '#8e44ad';
+                    document.getElementById('action-log-content').style.display = 'none';
+                    document.getElementById('action-tracker-content').style.display = 'block';
+                    this.loadTracker();
+                }
+            },
+
+            async loadTracker() {
+                const items = await OBR.scene.items.getItems();
+                const container = document.getElementById('tracker-container');
+                const targetItems = items.filter(i => i.metadata["com.yourparty.chest/data"]);
+                
+                if (targetItems.length === 0) {
+                    return container.innerHTML = "<p style='text-align:center; color:#888; padding:20px;'>No Chest or Shop tokens found on this map.</p>";
+                }
+
+                container.innerHTML = targetItems.map(item => {
+                    const data = item.metadata["com.yourparty.chest/data"];
+                    const typeIcon = data.type === 'shop' ? '⚖️ Shop' : '📦 Chest';
+                    const tokenName = item.name || "Unnamed Token";
+                    const imgUrl = (item.image && item.image.url) ? item.image.url : "";
+                    
+                    return `
+                        <div class="item-row flex-row" style="cursor: pointer; padding: 5px; border-left: 3px solid #8e44ad;" ondblclick="App.gotoToken('${item.id}')" title="Double click to go to token">
+                            ${imgUrl ? `<img src="${imgUrl}" style="width:35px; height:35px; border-radius:4px; object-fit:cover;">` : `<div style="width:35px; height:35px; background:#222; border-radius:4px; text-align:center; line-height:35px;">🔲</div>`}
+                            <div class="flex-1">
+                                <strong style="color:white; font-size:14px;">${tokenName}</strong>
+                                <div style="font-size:12px; color:#aaa;">${typeIcon}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            },
+
+            async gotoToken(id) {
+                const items = await OBR.scene.items.getItems([id]);
+                if (items.length > 0) {
+                    const item = items[0];
+                    try {
+                        // เลื่อนกล้องไปหาและซูม
+                        await OBR.viewport.animateTo({ position: item.position, scale: 2 });
+                        // ไฮไลต์ Token ให้สังเกตง่ายๆ
+                        await OBR.player.select([id]);
+                    } catch(e) { console.error(e); }
+                }
+            },
+
+            // --- ระบบ Log ---
+            async bindLogSync() {
+                this.renderLogs(await OBR.scene.getMetadata());
+                OBR.scene.onMetadataChange((metadata) => this.renderLogs(metadata));
+            },
+
+            renderLogs(metadata) {
+                const logs = metadata["com.yourparty.chest/logs"] || [];
+                const container = document.getElementById('log-container');
+                if (logs.length === 0) return container.innerHTML = "<p style='text-align:center; color:#888;'>No activities yet.</p>";
+                
+                container.innerHTML = logs.map(l => `
+                    <div class="log-entry">
+                        <span class="time">[${l.time}]</span> <strong>${l.player}</strong> ${l.action} 
+                        <span style="color:#f1c40f;">${l.detail}</span>
+                    </div>
+                `).join('');
+            },
+
+            async pushLog(action, detail) {
+                const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const newLog = { time, player: this.state.myName, action, detail };
+                const metadata = await OBR.scene.getMetadata();
+                let logs = metadata["com.yourparty.chest/logs"] || [];
+                logs.unshift(newLog); 
+                if(logs.length > 50) logs.pop(); 
+                await OBR.scene.setMetadata({"com.yourparty.chest/logs": logs});
+            },
+
+            // --- ระบบ Chest & Shop ---
+            async loadTokenData() {
+                const items = await OBR.scene.items.getItems([this.state.tokenId]);
+                const defData = { type: "chest", isLocked: false, inUseBy: "", inUseByName: "", money: {pp:0,gp:0,ep:0,sp:0,cp:0}, itemsList: [] };
+                
+                let tokenData = items.length ? items[0].metadata["com.yourparty.chest/data"] : null;
+                
+                if (tokenData) {
+                    this.state.data = { ...defData, ...tokenData };
+                    this.state.data.itemsList = tokenData.itemsList || [];
+                    this.state.data.money = { ...defData.money, ...(tokenData.money || {}) };
+                } else {
+                    this.state.data = defData;
+                }
+                this.renderUI();
+            },
+
+            bindTokenSync() {
+                OBR.scene.items.onChange((items) => {
+                    const token = items.find(i => i.id === this.state.tokenId);
+                    if (token && token.metadata["com.yourparty.chest/data"]) {
+                        const tokenData = token.metadata["com.yourparty.chest/data"];
+                        
+                        if (this.state.role !== "GM" && this.state.data.inUseBy === this.state.myId && tokenData.inUseBy !== this.state.myId) {
+                            this.state.data.inUseBy = ""; 
+                            OBR.popover.close("com.yourparty.chest/popover");
+                            return;
+                        }
+
+                        this.state.data = {
+                            ...this.state.data,
+                            ...tokenData,
+                            itemsList: tokenData.itemsList || [],
+                            money: { ...(this.state.data.money || {}), ...(tokenData.money || {}) }
+                        };
+                        this.renderUI();
+                    }
+                });
+            },
+
+            toggleType() {
+                document.getElementById('shop-price-inputs').style.display = document.getElementById('type-select').value === 'shop' ? 'flex' : 'none';
+                document.getElementById('money-section').style.display = document.getElementById('type-select').value === 'shop' ? 'none' : 'block';
+            },
+
+            async toggleLock() {
+                this.state.data.isLocked = !this.state.data.isLocked;
+                await this.saveToToken(true);
+                this.renderUI();
+            },
+
+            async forceUnlock() {
+                this.state.data.inUseBy = "";
+                this.state.data.inUseByName = "";
+                await this.saveToToken(true);
+                this.renderUI();
+            },
+
+            renderUI() {
+                const { role, data } = this.state;
+                const isGM = role === "GM";
+                
+                document.getElementById('header-title').innerText = data.type === "chest" ? "📦 Chest" : "⚖️ Shop";
+
+                if (!isGM && data.isLocked) {
+                    document.getElementById('lock-warning').style.display = 'block';
+                    document.getElementById('lock-warning').innerText = "🔒 This is locked by DM";
+                    document.getElementById('main-content').style.display = 'none';
+                    return;
+                }
+
+                if (!isGM && data.inUseBy && data.inUseBy !== this.state.myId) {
+                    document.getElementById('lock-warning').style.display = 'block';
+                    document.getElementById('lock-warning').innerText = "⏳ First come first serve... just wait!\n(Someone is looking inside)";
+                    document.getElementById('main-content').style.display = 'none';
+                    return;
+                }
+
+                document.getElementById('lock-warning').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+
+                if (isGM) {
+                    document.getElementById('dm-controls').style.display = 'block';
+                    document.getElementById('btn-save-dm').style.display = 'block';
+                    document.getElementById('type-select').value = data.type;
+                    
+                    const btnLock = document.getElementById('btn-lock');
+                    btnLock.innerText = data.isLocked ? "🔒 Locked" : "🔓 Unlocked";
+                    btnLock.style.background = data.isLocked ? "#e74c3c" : "#27ae60";
+
+                    document.getElementById('view-status').innerText = data.inUseByName ? `👁️ Currently viewed by: ${data.inUseByName}` : "👁️ No one is viewing.";
+
+                    if (data.type === 'chest') {
+                        document.getElementById('money-section').style.display = 'block';
+                        document.getElementById('dm-money-inputs').style.display = 'grid';
+                        document.getElementById('player-money-display').style.display = 'none';
+                        ['pp','gp','ep','sp','cp'].forEach(c => document.getElementById(`m-${c}`).value = data.money[c] || 0);
+                    }
+                    this.toggleType();
+                } else {
+                    const hasMoney = ['pp','gp','ep','sp','cp'].some(c => data.money[c] > 0);
+                    const hasItems = data.itemsList.some(i => i.qty > 0);
+
+                    if (data.type === 'chest') {
+                        document.getElementById('money-section').style.display = hasMoney ? 'block' : 'none'; 
+                        document.getElementById('dm-money-inputs').style.display = 'none';
+                        document.getElementById('player-money-display').style.display = hasMoney ? 'block' : 'none';
+                        document.getElementById('btn-take-money').style.display = hasMoney ? 'block' : 'none';
+                        ['pp','gp','ep','sp','cp'].forEach(c => document.getElementById(`d-${c}`).innerText = data.money[c] > 0 ? `${data.money[c]} ${c.toUpperCase()} ` : "");
+
+                        document.getElementById('btn-take-all').style.display = (hasMoney || hasItems) ? 'block' : 'none';
+                    } else {
+                        document.getElementById('money-section').style.display = 'none';
+                        document.getElementById('btn-take-all').style.display = 'none';
+                    }
+                }
+
+                this.renderItemList();
+            },
+
+            renderItemList() {
+                const list = document.getElementById('item-list');
+                const isGM = this.state.role === "GM";
+                list.innerHTML = "";
+
+                let itemsToShow = this.state.data.itemsList;
+                if (!isGM && this.state.data.type === "chest") {
+                    itemsToShow = itemsToShow.filter(i => i.qty > 0);
+                }
+
+                if(itemsToShow.length === 0) {
+                    return list.innerHTML = "<p style='text-align:center; color:#888;'>No items here.</p>";
+                }
+
+                itemsToShow.forEach(item => {
+                    const isOut = item.qty <= 0;
+                    const priceStr = (this.state.data.type === 'shop' && item.pval) ? ` | 💰 ${item.pval} ${item.pcoin}/ea` : "";
+                    const outOfStock = isOut ? `<span style="color:#e74c3c; font-size:12px; font-weight:bold;"> (Out of Stock)</span>` : "";
+                    
+                    let controls = "";
+                    if (isGM) {
+                        controls = `
+                            <div style="float:right;">
+                                ${isOut ? `<button style="background:#4CAF50; padding:4px 8px;" onclick="App.restockItem('${item.id}')">↻ Restock</button>` : ""}
+                                <button style="background:#9C27B0; padding:4px 8px;" onclick="App.editItem('${item.id}')">✎ Edit</button>
+                                <button style="background:#e74c3c; padding:4px 8px;" onclick="App.deleteItem('${item.id}')">X</button>
+                            </div>`;
+                    } else {
+                        if (isOut) {
+                            controls = `<div style="float:right;"><button style="background:#7f8c8d; padding:5px 10px;" disabled>Sold Out</button></div>`;
+                        } else {
+                            const actionName = this.state.data.type === 'shop' ? 'Buy' : 'Take';
+                            controls = `
+                                <div class="flex-row" style="float:right;">
+                                    <input type="number" id="q-${item.id}" value="1" min="1" max="${item.qty}" style="width:60px; margin:0; padding:4px;">
+                                    <button style="background:#f39c12; padding:5px 10px;" onclick="App.actionItem('${item.id}', '${actionName}')">${actionName}</button>
+                                </div>`;
+                        }
+                    }
+
+                    list.innerHTML += `
+                        <div class="item-row" style="border-left-color: ${item.rarity};">
+                            ${controls}
+                            <strong style="color: ${item.rarity};">${item.name}</strong> <span class="badge">Qty: ${item.qty}</span>
+                            <div style="font-size:12px; color:#aaa;">${priceStr} ${outOfStock}</div>
+                            ${item.desc ? `<div style="font-size: 12px; color:#888; margin-top:4px;">${item.desc}</div>` : ""}
+                        </div>`;
+                });
+            },
+
+            saveItem() {
+                const name = document.getElementById('i-name').value.trim();
+                if (!name) return;
+
+                const newItem = {
+                    name,
+                    qty: parseInt(document.getElementById('i-qty').value) || 1,
+                    rarity: document.getElementById('i-rarity').value,
+                    pval: document.getElementById('i-pval').value,
+                    pcoin: document.getElementById('i-pcoin').value,
+                    desc: document.getElementById('i-desc').value.trim()
+                };
+
+                if (this.state.editId) {
+                    const idx = this.state.data.itemsList.findIndex(i => i.id === this.state.editId);
+                    if(idx > -1) this.state.data.itemsList[idx] = { ...this.state.data.itemsList[idx], ...newItem };
+                    this.state.editId = null;
+                    document.getElementById('btn-add-item').innerText = "+ Add Item";
+                } else {
+                    this.state.data.itemsList.push({ id: Date.now().toString(), ...newItem });
+                }
+
+                ['i-name','i-qty','i-pval','i-desc'].forEach(id => document.getElementById(id).value = (id === 'i-qty' ? '1' : ''));
+                this.renderItemList();
+            },
+
+            editItem(id) {
+                const item = this.state.data.itemsList.find(i => i.id === id);
+                if(!item) return;
+                document.getElementById('i-name').value = item.name;
+                document.getElementById('i-qty').value = item.qty;
+                document.getElementById('i-rarity').value = item.rarity;
+                document.getElementById('i-pval').value = item.pval || '';
+                document.getElementById('i-pcoin').value = item.pcoin || 'GP';
+                document.getElementById('i-desc').value = item.desc;
+                
+                this.state.editId = id;
+                document.getElementById('btn-add-item').innerText = "✓ Update Item";
+            },
+
+            deleteItem(id) {
+                this.state.data.itemsList = this.state.data.itemsList.filter(i => i.id !== id);
+                this.renderItemList();
+            },
+
+            async restockItem(id) {
+                const item = this.state.data.itemsList.find(i => i.id === id);
+                if(item) {
+                    const add = parseInt(prompt(`Restock how many [${item.name}]?`, "1"));
+                    if(add > 0) {
+                        item.qty += add;
+                        this.renderUI();
+                        await this.saveToToken(true); 
+                    }
+                }
+            },
+
+            async actionItem(id, actionName) {
+                const item = this.state.data.itemsList.find(i => i.id === id);
+                const reqQty = parseInt(document.getElementById(`q-${id}`).value) || 1;
+                
+                if (reqQty < 1 || reqQty > item.qty) return alert("Invalid quantity!");
+                
+                let costStr = "";
+                if (actionName === 'Buy' && item.pval) {
+                    const totalCost = item.pval * reqQty;
+                    costStr = ` for ${totalCost} ${item.pcoin}`;
+                }
+
+                item.qty -= reqQty;
+                
+                await this.pushLog(actionName === 'Buy' ? 'bought' : 'took', `${reqQty}x ${item.name}${costStr}`);
+                await this.saveToToken(true);
+            },
+
+            async takeMoney() {
+                if(!confirm("Take all money?")) return;
+                
+                const m = this.state.data.money;
+                let taken = [];
+                ['pp','gp','ep','sp','cp'].forEach(c => { if(m[c] > 0) { taken.push(`${m[c]} ${c.toUpperCase()}`); m[c] = 0; } });
+                
+                await this.pushLog('looted', taken.join(', '));
+                await this.saveToToken(true);
+            },
+
+            async takeAll() {
+                if(!confirm("Are you sure you want to take EVERYTHING?")) return;
+                
+                const m = this.state.data.money;
+                let taken = [];
+                let tookAnything = false;
+
+                ['pp','gp','ep','sp','cp'].forEach(c => { 
+                    if(m[c] > 0) { taken.push(`${m[c]} ${c.toUpperCase()}`); m[c] = 0; tookAnything = true; } 
+                });
+
+                this.state.data.itemsList.forEach(item => {
+                    if (item.qty > 0) {
+                        taken.push(`${item.qty}x ${item.name}`);
+                        item.qty = 0;
+                        tookAnything = true;
+                    }
+                });
+
+                if (!tookAnything) return;
+                await this.pushLog('looted everything:', taken.join(', '));
+                await this.saveToToken(true);
+            },
+
+            async saveToToken(isSilent = false) {
+                try {
+                    if(this.state.role === "GM") {
+                        this.state.data.type = document.getElementById('type-select').value;
+                        if(this.state.data.type === 'chest') {
+                            ['pp','gp','ep','sp','cp'].forEach(c => this.state.data.money[c] = parseInt(document.getElementById(`m-${c}`).value) || 0);
+                        }
+                    }
+                    await OBR.scene.items.updateItems([this.state.tokenId], items => {
+                        items[0].metadata["com.yourparty.chest/data"] = this.state.data;
+                    });
+                    
+                    if (!isSilent && this.state.role === "GM") {
+                        const status = document.getElementById('save-status');
+                        status.style.display = "block";
+                        setTimeout(() => { status.style.display = "none"; }, 2000);
+                    }
+                } catch (error) {
+                    console.error(error);
+                }
+            },
+
+            exportPreset() {
+                const exportData = {
+                    type: this.state.data.type,
+                    money: this.state.data.money,
+                    itemsList: this.state.data.itemsList
+                };
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
+                const dlNode = document.createElement('a');
+                dlNode.setAttribute("href", dataStr);
+                dlNode.setAttribute("download", "chest_preset.json");
+                document.body.appendChild(dlNode);
+                dlNode.click();
+                dlNode.remove();
+            },
+
+            importPreset(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
+                        this.state.data.type = importedData.type || "chest";
+                        this.state.data.money = importedData.money || {pp:0, gp:0, ep:0, sp:0, cp:0};
+                        this.state.data.itemsList = importedData.itemsList || [];
+                        
+                        this.renderUI();
+                        await this.saveToToken(false);
+                        alert("✅ Preset loaded successfully!");
+                    } catch (error) {
+                        alert("❌ Invalid JSON file!");
+                    }
+                    event.target.value = ""; 
+                };
+                reader.readAsText(file);
+            },
+
+            async close() { 
+                if (this.state.tokenId && this.state.role !== "GM" && this.state.data && this.state.data.inUseBy === this.state.myId) {
+                    this.state.data.inUseBy = "";
+                    this.state.data.inUseByName = "";
+                    await this.saveToToken(true);
+                }
+                try { await OBR.popover.close("com.yourparty.chest/popover"); } catch(e){}
+                try { await OBR.action.close(); } catch(e){}
+            }
+        };
+
+        window.App = App;
+        OBR.onReady(() => App.init());
+
+    </script>
+</body>
+</html>

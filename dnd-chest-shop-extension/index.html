@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"></head>
+<body>
+    <script type="module">
+        import OBR from "https://esm.sh/@owlbear-rodeo/sdk@latest";
+
+        OBR.onReady(async () => {
+            const role = await OBR.player.getRole();
+            OBR.contextMenu.create({
+                id: "com.yourparty.chest/context-menu",
+                icons: [{
+                    icon: "/icon.svg",
+                    label: role === "GM" ? "Manage Chest / Shop" : "Open Chest / Shop"
+                }],
+                onClick: (context) => {
+                    if (!context.items || context.items.length === 0) return;
+                    OBR.popover.open({
+                        id: "com.yourparty.chest/popover",
+                        // บังคับรีเฟรช 100% ทุกครั้งที่เปิด ป้องกันบัคเข้าไม่ได้
+                        url: `/ui.html?tokenId=${context.items[0].id}&t=${Date.now()}`,
+                        height: 600, width: 450
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
