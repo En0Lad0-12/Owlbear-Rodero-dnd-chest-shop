@@ -9,18 +9,19 @@
             try {
                 const role = await OBR.player.getRole();
                 
-                // สร้างเมนูคลิกขวา และใส่ Filter คลุมทุกเลเยอร์!
+                // ล้างเมนูเก่าที่อาจจะค้างออกก่อน
+                try { await OBR.contextMenu.remove("com.yourparty.chest/context-menu"); } catch(e) {}
+
                 OBR.contextMenu.create({
                     id: "com.yourparty.chest/context-menu",
                     icons: [{
-                        icon: "https://en0lad0-12.github.io/Owlbear-Rodero-dnd-chest-shop/dnd-chest-shop-extension/icon.svg",
+                        // ท่าไม้ตาย: ฝังรูป Icon เป็นโค้ด Base64 ไปเลย (ไม่มีวัน 404 แน่นอน)
+                        icon: "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23e0e0e0'%3E%3Cpath d='M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10-2h4v2h-4V4zm10 16H4V8h16v12z'/%3E%3C/svg%3E",
                         label: role === "GM" ? "Manage Chest / Shop" : "Open Chest / Shop",
+                        // ตัวกรองแบบกว้างสุด: ขอแค่เป็น "รูปภาพ" ก็ให้เมนูนี้โผล่ขึ้นมาทันที!
                         filter: {
-                            some: [
-                                { key: "layer", value: "CHARACTER" },
-                                { key: "layer", value: "PROP" },
-                                { key: "layer", value: "MOUNT" },
-                                { key: "layer", value: "ATTACHMENT" }
+                            every: [
+                                { key: "type", value: "IMAGE" }
                             ]
                         }
                     }],
