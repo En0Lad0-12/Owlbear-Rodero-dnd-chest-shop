@@ -10,7 +10,7 @@
             OBR.contextMenu.create({
                 id: "com.yourparty.chest/context-menu",
                 icons: [{
-                    icon: "/icon.svg",
+                    icon: "icon.svg",
                     label: role === "GM" ? "Manage Chest / Shop" : "Open Chest / Shop"
                 }],
                 onClick: (context) => {
@@ -18,7 +18,7 @@
                     OBR.popover.open({
                         id: "com.yourparty.chest/popover",
                         // บังคับรีเฟรช 100% ทุกครั้งที่เปิด ป้องกันบัคเข้าไม่ได้
-                        url: `/ui.html?tokenId=${context.items[0].id}&t=${Date.now()}`,
+                        url: `ui.html?tokenId=${context.items[0].id}&t=${Date.now()}`,
                         height: 600, width: 450
                     });
                 }
