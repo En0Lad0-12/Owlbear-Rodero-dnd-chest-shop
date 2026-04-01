@@ -39,7 +39,6 @@
 <body>
 
     <div id="view-action" style="display: none;">
-        
         <div id="action-tabs" style="display: flex; gap: 5px; margin-bottom: 10px; display: none;">
             <button id="tab-log" class="tab-btn" style="background: #f39c12;" onclick="App.switchActionTab('log')">📜 Activity Log</button>
             <button id="tab-tracker" class="tab-btn" style="background: #555;" onclick="App.switchActionTab('tracker')">🔍 Token Tracker</button>
@@ -54,8 +53,7 @@
 
         <div id="action-tracker-content" style="display: none;">
             <h3>🔍 Chest & Shop Locations</h3>
-            <div class="box item-list" id="tracker-container" style="max-height: 400px; padding:5px;">
-                </div>
+            <div class="box item-list" id="tracker-container" style="max-height: 400px; padding:5px;"></div>
             <p style="font-size: 12px; color: #aaa; text-align: center; margin-top:5px;">* Double-click a row to focus camera on token.</p>
         </div>
 
@@ -68,14 +66,12 @@
         
         <div id="main-content" style="display:none;">
             <div id="dm-controls" style="display:none; margin-bottom: 10px;">
-                
                 <div class="flex-row" style="margin-bottom: 10px;">
                     <button class="flex-1" style="background: #8e44ad;" onclick="App.exportPreset()">💾 Export Preset</button>
                     <label class="flex-1" style="background: #2c3e50; text-align: center; cursor: pointer; padding: 8px; border-radius: 4px; font-weight: bold; color: white;">
                         📂 Import <input type="file" accept=".json" style="display: none;" onchange="App.importPreset(event)">
                     </label>
                 </div>
-
                 <div class="flex-row" style="margin-bottom: 5px;">
                     <button id="btn-lock" class="flex-1" onclick="App.toggleLock()" style="background: #e74c3c;">🔓 Unlocked</button>
                     <button id="btn-kick" class="flex-1" onclick="App.forceUnlock()" style="background: #34495e;">🥾 Kick Viewer</button>
@@ -92,7 +88,7 @@
                     <div style="font-size: 13px; margin-bottom: 5px;">🗡️ <strong>Item Manager</strong></div>
                     <div class="flex-row">
                         <input type="text" id="i-name" placeholder="Item Name" style="flex: 3;">
-                        <input type="number" id="i-qty" placeholder="Qty" value="1" min="1" style="flex: 1;" title="Quantity">
+                        <input type="number" id="i-qty" placeholder="Qty" value="1" min="1" style="flex: 1;">
                     </div>
                     <div class="flex-row">
                         <select id="i-rarity" class="flex-1">
@@ -152,7 +148,7 @@
                     document.getElementById('view-action').style.display = 'block';
                     if (this.state.role === "GM") {
                         document.getElementById('action-tabs').style.display = 'flex';
-                        document.getElementById('log-header').style.display = 'none'; // ซ่อนหัวข้อถ้ามี Tab แล้ว
+                        document.getElementById('log-header').style.display = 'none';
                         this.loadTracker();
                     }
                     this.bindLogSync();
@@ -179,7 +175,6 @@
                 });
             },
 
-            // --- ระบบ Tracker ของ DM ---
             switchActionTab(tab) {
                 if(tab === 'log') {
                     document.getElementById('tab-log').style.background = '#f39c12';
@@ -227,15 +222,12 @@
                 if (items.length > 0) {
                     const item = items[0];
                     try {
-                        // เลื่อนกล้องไปหาและซูม
                         await OBR.viewport.animateTo({ position: item.position, scale: 2 });
-                        // ไฮไลต์ Token ให้สังเกตง่ายๆ
                         await OBR.player.select([id]);
                     } catch(e) { console.error(e); }
                 }
             },
 
-            // --- ระบบ Log ---
             async bindLogSync() {
                 this.renderLogs(await OBR.scene.getMetadata());
                 OBR.scene.onMetadataChange((metadata) => this.renderLogs(metadata));
@@ -264,7 +256,6 @@
                 await OBR.scene.setMetadata({"com.yourparty.chest/logs": logs});
             },
 
-            // --- ระบบ Chest & Shop ---
             async loadTokenData() {
                 const items = await OBR.scene.items.getItems([this.state.tokenId]);
                 const defData = { type: "chest", isLocked: false, inUseBy: "", inUseByName: "", money: {pp:0,gp:0,ep:0,sp:0,cp:0}, itemsList: [] };
