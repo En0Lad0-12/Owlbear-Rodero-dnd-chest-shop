@@ -2,13 +2,13 @@
   "name": "Chest & Shop",
   "version": "1.0.0",
   "manifest_version": 1,
-  "description": "ระบบจัดการหีบสมบัติและร้านค้าสำหรับปาร์ตี้",
+  "description": "ระบบจัดการหีบสมบัติและร้านค้า",
   "action": {
     "title": "Open Chest / Shop",
-    "icon": "icon.svg",
-    "popover": "ui.html",
+    "icon": "/Owlbear-Rodero-dnd-chest-shop/dnd-chest-shop-extension/icon.svg",
+    "popover": "/Owlbear-Rodero-dnd-chest-shop/dnd-chest-shop-extension/ui.html",
     "height": 600,
     "width": 450
   },
-  "background_url": "index.html"
+  "background_url": "/Owlbear-Rodero-dnd-chest-shop/dnd-chest-shop-extension/index.html"
 }
