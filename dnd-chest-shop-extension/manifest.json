@@ -1,6 +1,6 @@
 {
   "name": "Chest & Shop",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "manifest_version": 1,
   "description": "ระบบจัดการหีบสมบัติและร้านค้า",
   "action": {
@@ -10,5 +10,5 @@
     "height": 600,
     "width": 450
   },
-  "background_url": "https://en0lad0-12.github.io/Owlbear-Rodero-dnd-chest-shop/dnd-chest-shop-extension/index.html"
+  "background_url": "https://en0lad0-12.github.io/Owlbear-Rodero-dnd-chest-shop/dnd-chest-shop-extension/index.html?v=2"
 }
