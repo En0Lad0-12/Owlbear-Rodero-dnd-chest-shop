@@ -7,18 +7,16 @@
 
         OBR.onReady(async () => {
             const role = await OBR.player.getRole();
+            
+            // ล้างเมนูเก่าที่อาจจะค้างหรือเอ๋อในระบบออกก่อน
+            try { await OBR.contextMenu.remove("com.yourparty.chest/context-menu"); } catch(e) {}
+
             OBR.contextMenu.create({
                 id: "com.yourparty.chest/context-menu",
                 icons: [{
                     icon: "https://en0lad0-12.github.io/Owlbear-Rodero-dnd-chest-shop/dnd-chest-shop-extension/icon.svg",
-                    label: role === "GM" ? "Manage Chest / Shop" : "Open Chest / Shop",
-                    filter: {
-                        some: [
-                            { key: "layer", value: "CHARACTER" },
-                            { key: "layer", value: "PROP" },
-                            { key: "layer", value: "MOUNT" }
-                        ]
-                    }
+                    label: role === "GM" ? "Manage Chest / Shop" : "Open Chest / Shop"
+                    // ลบ Filter ออกทั้งหมดแล้ว! คราวนี้คลิกอะไรก็ต้องโผล่!
                 }],
                 onClick: (context) => {
                     if (!context.items || context.items.length === 0) return;
