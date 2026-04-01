@@ -10,14 +10,21 @@
             OBR.contextMenu.create({
                 id: "com.yourparty.chest/context-menu",
                 icons: [{
-                    icon: "icon.svg",
-                    label: role === "GM" ? "Manage Chest / Shop" : "Open Chest / Shop"
+                    icon: "/Owlbear-Rodero-dnd-chest-shop/dnd-chest-shop-extension/icon.svg",
+                    label: role === "GM" ? "Manage Chest / Shop" : "Open Chest / Shop",
+                    filter: {
+                        some: [
+                            { key: "layer", value: "CHARACTER" },
+                            { key: "layer", value: "PROP" },
+                            { key: "layer", value: "MOUNT" }
+                        ]
+                    }
                 }],
                 onClick: (context) => {
                     if (!context.items || context.items.length === 0) return;
                     OBR.popover.open({
                         id: "com.yourparty.chest/popover",
-                        url: `ui.html?tokenId=${context.items[0].id}&t=${Date.now()}`,
+                        url: `/Owlbear-Rodero-dnd-chest-shop/dnd-chest-shop-extension/ui.html?tokenId=${context.items[0].id}&t=${Date.now()}`,
                         height: 600, width: 450
                     });
                 }
