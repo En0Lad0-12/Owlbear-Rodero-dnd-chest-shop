@@ -5,10 +5,10 @@
   "description": "ระบบจัดการหีบสมบัติและร้านค้า",
   "action": {
     "title": "Open Chest / Shop",
-    "icon": "/Owlbear-Rodero-dnd-chest-shop/dnd-chest-shop-extension/icon.svg",
-    "popover": "/Owlbear-Rodero-dnd-chest-shop/dnd-chest-shop-extension/ui.html",
+    "icon": "https://en0lad0-12.github.io/Owlbear-Rodero-dnd-chest-shop/dnd-chest-shop-extension/icon.svg",
+    "popover": "https://en0lad0-12.github.io/Owlbear-Rodero-dnd-chest-shop/dnd-chest-shop-extension/ui.html",
     "height": 600,
     "width": 450
   },
-  "background_url": "/Owlbear-Rodero-dnd-chest-shop/dnd-chest-shop-extension/index.html"
+  "background_url": "https://en0lad0-12.github.io/Owlbear-Rodero-dnd-chest-shop/dnd-chest-shop-extension/index.html"
 }
