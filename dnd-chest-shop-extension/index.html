@@ -5,15 +5,12 @@
     <script type="module">
         import OBR from "https://esm.sh/@owlbear-rodeo/sdk@latest";
 
-        OBR.onReady(async () => {
-            const role = await OBR.player.getRole();
-            
-            // สร้างเมนูคลิกขวา 
+        OBR.onReady(() => {
             OBR.contextMenu.create({
                 id: "com.yourparty.chest/context-menu",
                 icons: [{
                     icon: "https://en0lad0-12.github.io/Owlbear-Rodero-dnd-chest-shop/dnd-chest-shop-extension/icon.svg",
-                    label: role === "GM" ? "Manage Chest / Shop" : "Open Chest / Shop",
+                    label: "Chest / Shop",
                     filter: {
                         some: [
                             { key: "layer", value: "CHARACTER" },
@@ -26,7 +23,7 @@
                     if (!context.items || context.items.length === 0) return;
                     OBR.popover.open({
                         id: "com.yourparty.chest/popover",
-                        url: `https://en0lad0-12.github.io/Owlbear-Rodero-dnd-chest-shop/dnd-chest-shop-extension/ui.html?tokenId=${context.items[0].id}&t=${Date.now()}`,
+                        url: "https://en0lad0-12.github.io/Owlbear-Rodero-dnd-chest-shop/dnd-chest-shop-extension/ui.html?tokenId=" + context.items[0].id,
                         height: 600, 
                         width: 450
                     });
